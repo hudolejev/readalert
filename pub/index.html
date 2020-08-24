@@ -1,0 +1,280 @@
+<html>
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<!--meta http-equiv="refresh" content="10"-->
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+<script type="text/javascript">
+var alertsFile = "alerts.json";
+
+function getAgeInSeconds(time) {
+    return Math.floor((new Date() - new Date(time * 1000)) / 1000);
+}
+
+function getAgeStr(time) {
+    ageInSeconds = getAgeInSeconds(time);
+
+    if (ageInSeconds < 60) { return `${ageInSeconds}s` }
+    if (ageInSeconds < 3600) { return `${Math.floor(ageInSeconds / 60)}m` }
+    if (ageInSeconds < 86400) { return `${Math.floor(ageInSeconds / 3600)}h` }
+    return `${Math.floor(ageInSeconds / 86400)}d`;
+}
+
+function getAlertSeverityName(severityId) {
+    if (severityId == 2) { return 'Warning' }
+    if (severityId == 3) { return 'Average' }
+    if (severityId == 4) { return 'High' }
+    if (severityId == 5) { return 'Disaster' }
+    return 'Unknown';
+}
+
+function getAlerts(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Cache-Control', 'max-age=0, no-cache');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            alertData = JSON.parse(xhr.responseText);
+            printAlerts(alertData);
+        }
+    };
+    xhr.send();
+}
+
+function getBackendShortName(backendName) {
+    return backendName.match(/\b\w/g).join('').substring(0, 2);
+}
+
+function getTimeStr(time) {
+    return new Date(time * 1000).toString();
+}
+
+function printAlerts(alertData) {
+    alertingBackends = [];
+
+    backendShortNames = {};
+    for (const backend of alertData['backends']) {
+        backendShortNames[backend['url']] = getBackendShortName(backend['name']);
+    }
+
+    document.getElementById('alert-list').innerHTML = '';
+    for (const alert of alertData['alerts']) {
+        alertSeverityName = getAlertSeverityName(alert['severity']);
+        alertSeverityHtml = `<td class="alert-severity"><abbr title="${alertSeverityName}">${alertSeverityName[0]}</abbr></td>`;
+
+        alertContentHtml = `<p class="alert-name">${alert['name']}</p>`;
+        if (alert['description']) {
+            alertContentHtml += `<p>${alert['description'].replace(/(https?:\/\/[^\s\\]+)/, '<a href="$1">$1</a>')}</p>`;
+        }
+        if (alert['items'].length > 0) {
+            alertHosts = []
+            alertContentHtml += `<p>${alert['items'].join(', ')}</p>`;
+        }
+        alertContentHtml = `<td class="alert-content">${alertContentHtml}</td>`;
+
+        alertAgeStr = getAgeStr(alert['created_at']);
+        alertTimeStr = getTimeStr(alert['created_at']);
+        alertAgeInSeconds = getAgeInSeconds(alert['created_at']);
+        if (alert['severity'] > 2 && alertAgeInSeconds > 3600 || alertAgeInSeconds > 86400) {
+            alertAgeCssClass = 'alert-age time-warning';
+        } else {
+            alertAgeCssClass = 'alert-age';
+        }
+        alertAgeHtml = `<td class="${alertAgeCssClass}"><abbr title="${alertTimeStr}">${alertAgeStr}</abbr></td>`;
+
+        alertSourceHtml = `<td class="alert-source">${backendShortNames[alert['source']]}</td>`;
+
+        alertLinkHtml = `<td class="alert-link"><a href="${alert['url']}" target="_blank">More&nbsp;&raquo;</a></td>`;
+
+        alertContainerHtml = alertSeverityHtml + alertContentHtml + alertAgeHtml + alertSourceHtml + alertLinkHtml;
+        alertContainerHtml = `<tr class="alert alert-${alert['severity']}">${alertContainerHtml}</tr>`;
+        document.getElementById('alert-list').innerHTML += alertContainerHtml;
+
+        if (alertingBackends.indexOf(alert['source']) < 0) {
+            alertingBackends.push(alert['source']);
+        }
+    }
+
+    printReportInfo(alertData['created_at']);
+    printBackendInfo(alertData['backends'], alertingBackends);
+}
+
+function printBackendInfo(knownBackends, alertingBackends) {
+    backendInfoHtml = '';
+    for (const backend of knownBackends) {
+        if (backend['error']) {
+            backendCssClass = 'backend-failed';
+            backendDescription = `Failed to get alerts from ${backend['name']}: ${backend['error']}`
+        } else if (alertingBackends.indexOf(backend['url']) < 0) {
+            backendCssClass = 'backend-ok';
+            backendDescription = `${backend['name']} backend is online; no alerts reported.`
+        } else {
+            backendCssClass = 'backend-alerting';
+            backendDescription = `${backend['name']} backend is online and reporting some active alerts.`
+        }
+        backendShortName = getBackendShortName(backend['name']);
+        backendLinkHtml = `<a class="${backendCssClass}" href="${backend['url']}" target="_blank">${backendShortName}</a>`;
+        backendInfoHtml += `<abbr title="${backendDescription}">${backendLinkHtml}</abbr>`;
+    }
+    document.getElementById('backend-info').innerHTML = backendInfoHtml;
+}
+
+function printReportInfo(createdAt) {
+    reportTimeStr = getTimeStr(createdAt);
+    reportAgeMinutes = Math.floor(getAgeInSeconds(createdAt) / 60);
+    if (reportAgeMinutes < 1) {
+        reportAgeStr = 'less than a minute ago';
+    } else if (reportAgeMinutes < 5) {
+        reportAgeStr = 'less than 5 minutes ago';
+    } else {
+        reportAgeStr = '<span class="time-warning">more than 5 minutes ago️</span>';
+    }
+    document.getElementById('report-time-info').innerHTML = `Reported <abbr title="${reportTimeStr}">${reportAgeStr}</abbr>`;
+}
+
+window.onload = function() {
+    document.getElementById('report-json-link').href = alertsFile;
+    getAlerts(alertsFile);
+    setInterval(getAlerts, 15000, alertsFile);
+}
+</script>
+
+<style type="text/css">
+:root {
+  --bg-color-green: #4c4;
+  --bg-color-yellow: #ed9;
+  --bg-color-orange: #e96;
+  --bg-color-red: #c55;
+  --fg-color-red: #e33;
+}
+
+body {
+    font-family: "Ubuntu Mono", "Droid Sans Mono", Courier, monospace;
+}
+
+h1 {
+    /**border: 1px solid red;/**/
+    padding-left: 10px;
+}
+
+div#alert-list-info {
+    /**border: 1px solid blue;/**/
+    float: right;
+    padding: 10px 20px 10px 10px;
+    position: relative;
+    top: -10px;
+}
+
+div#alert-list-info span#backend-info {
+    margin-right: 15px;
+}
+
+div#alert-list-info span#backend-info a {
+    border: 6px solid;
+    border-radius: 30px;
+    color: #000;
+    display: inline-block;
+    font-weight: bold;
+    margin-right: 15px;
+    padding: 4px;
+    width: 20px;
+    text-align: center;
+    text-decoration: none;
+}
+
+div#alert-list-info span#backend-info a.backend-alerting {
+    border-color: var(--bg-color-orange);
+}
+
+div#alert-list-info span#backend-info a.backend-failed {
+    border-color: var(--bg-color-red);
+}
+
+div#alert-list-info span#backend-info a.backend-ok {
+    border-color: var(--bg-color-green);
+}
+
+div#alert-list-info span#report-time-info span.time-warning {
+    color: var(--fg-color-red);
+}
+
+div#footer {
+    font-size: 90%;
+    padding: 20px 10px 10px 10px;
+    text-align: center;
+}
+
+table#alert-list {
+    border-collapse: separate;
+    border-spacing: 0 2px;
+}
+
+table#alert-list tr.alert td {
+    padding: 15px;
+}
+
+table#alert-list tr.alert td.alert-age {
+    text-align: center;
+}
+
+table#alert-list tr.alert td.alert-content {
+    width: 99%;
+}
+
+table#alert-list tr.alert td.alert-content p.alert-name {
+    font-weight: bold;
+}
+
+table#alert-list tr.alert td.alert-severity {
+    font-size: 120%;
+    font-weight: bold;
+    padding-left: 30px;
+}
+
+table#alert-list tr.alert td.alert-source {
+    font-weight: bold;
+}
+
+table#alert-list tr.alert td.alert-severity abbr {
+    text-decoration: none;
+}
+
+table#alert-list tr.alert-2 {
+    background-color: var(--bg-color-yellow);
+}
+
+table#alert-list tr.alert-3 {
+    background-color: var(--bg-color-orange);
+}
+
+table#alert-list tr.alert-4 {
+    background-color: var(--bg-color-red);
+}
+
+table#alert-list tr.alert-5 {
+    background-color: var(--bg-color-red); /* TODO: make it distinguish from alert-4 */
+}
+
+table#alert-list tr.alert td.time-warning {
+    color: var(--fg-color-red);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #333, 1px 1px 2px #333, 1px 1px 2px #333;
+}
+</style>
+
+</head>
+<body>
+<div id="container">
+    <div id="alert-list-info">
+        <span id="backend-info">Loading...</span>
+        <span id="report-time-info">Loading...</span>
+        | <a id="report-json-link" href="javascript:void(0)">JSON</a>
+    </div>
+    <h1>Alerts</h1>
+    <table id="alert-list">
+        <tr><td>Loading...</td></tr>
+    </table>
+    <div id="footer">Read Alert v0.1.0<div>
+</div>
+</body>
+</html>
