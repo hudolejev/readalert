@@ -6,6 +6,7 @@
 
 <script type="text/javascript">
 var alertsFile = "alerts.json";
+var maxAlerts = 10;
 
 function getAgeInSeconds(time) {
     return Math.floor((new Date() - new Date(time * 1000)) / 1000);
@@ -58,7 +59,19 @@ function printAlerts(alertData) {
     }
 
     document.getElementById('alert-list').innerHTML = '';
+
+    alertNum = 0;
     for (const alert of alertData['alerts']) {
+        alertNum++;
+
+        if (alertingBackends.indexOf(alert['source']) < 0) {
+            alertingBackends.push(alert['source']);
+        }
+
+        if (alertNum > maxAlerts) {
+            continue;
+        }
+
         alertSeverityName = getAlertSeverityName(alert['severity']);
         alertSeverityHtml = `<td class="alert-severity"><abbr title="${alertSeverityName}">${alertSeverityName[0]}</abbr></td>`;
 
@@ -90,8 +103,9 @@ function printAlerts(alertData) {
         alertContainerHtml = `<tr class="alert alert-${alert['severity']}">${alertContainerHtml}</tr>`;
         document.getElementById('alert-list').innerHTML += alertContainerHtml;
 
-        if (alertingBackends.indexOf(alert['source']) < 0) {
-            alertingBackends.push(alert['source']);
+        if (alertNum >= maxAlerts) {
+            msgContainerHtml = `<tr class="alert"><td class="summary" colspan="5">Note: only the top ${maxAlerts} alerts are listed on this page. There are more...</td></tr>`;
+            document.getElementById('alert-list').innerHTML += msgContainerHtml;
         }
     }
 
@@ -261,6 +275,10 @@ table#alert-list tr.alert td.alert-severity abbr {
     text-decoration: none;
 }
 
+table#alert-list tr.alert td.summary {
+    color: var(--text-color);
+}
+
 table#alert-list tr.alert-2 {
     background-color: var(--bg-color-yellow);
 }
@@ -296,7 +314,7 @@ table#alert-list tr.alert td.time-warning {
     <table id="alert-list">
         <tr><td>Loading...</td></tr>
     </table>
-    <div id="footer">Read Alert v0.1.0<div>
+    <div id="footer">Read Alert v0.1.0 | <a href="https://github.com/hudolejev/readalert">GitHub</a><div>
 </div>
 </body>
 </html>
