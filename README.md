@@ -3,6 +3,13 @@ Read Alert
 
 Alert viewer with multiple backend (Grafana and Zabbix) support.
 
+Actively tested with:
+ - Zabbix v5.0
+ - Grafana v6.6
+
+Also known to work with:
+ - Zabbix v4.0
+
 
 Installation
 ------------
@@ -52,3 +59,9 @@ Configure Nginx to serve Read Alert web page, example:
             index index.html;
         }
     }
+
+
+Author
+------
+
+Juri Hudolejev <jhudolejev@gmail.com>
