@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# TODO: add alert generation time (how log did it take)
+# TODO: add alert generation time (how long did it take)
 # TODO: better error handling for Grafana API calls
 
 import json
@@ -127,61 +127,36 @@ def get_zabbix_alerts(zabbix_url, zabbix_api_token):
     # XXX Zabbix cannot return only unresolved problems: https://support.zabbix.com/browse/ZBXNEXT-5167
     # As a workaround we check the active triggers for all returned problems and skip the problems
     # that do not have any active trigger attached. As a bonus we get problem description from th trigger.
-    r = requests.post(
-        '%s/api_jsonrpc.php' % zabbix_url,
-        data=json.dumps({
-            'auth': zabbix_api_token,
-            'id': 1,
-            'jsonrpc': '2.0',
-            'method': 'problem.get',
-            'params': {
-                'acknowledged': False,
-                'output': ['clock', 'name', 'objectid', 'severity'],
-                'severities': [2, 3, 4, 5],
-                'sortfield': ['eventid'],
-                'sortorder': 'DESC',
-                'suppressed': False,
-            },
-        }),
-        headers={
-            'Content-Type': 'application/json-rpc',
-        },
-    )
-    response_json = r.json()
-
-    if 'error' in response_json:
-        response['error'] = '%s: %s' % (response_json['error']['code'], response_json['error']['message'])
-
-    if 'result' not in response_json:
+    zabbix_response = get_zabbix_response(zabbix_url, zabbix_api_token, 'problem.get', {
+        'acknowledged': False,
+        'output': ['clock', 'name', 'objectid', 'severity'],
+        'severities': [2, 3, 4, 5],
+        'sortfield': ['eventid'],
+        'sortorder': 'DESC',
+        'suppressed': False,
+    })
+    if zabbix_response['error']:
+        response['error'] = zabbix_response['error']
         return response
 
-    raw_alerts = response_json['result']
+    raw_alerts = zabbix_response['result']
 
     # Get active triggers that caused these problems
     for raw_alert in raw_alerts:
         trigger_ids.append(raw_alert['objectid'])
 
-    r = requests.post(
-        '%s/api_jsonrpc.php' % zabbix_url,
-        data=json.dumps({
-            'auth': zabbix_api_token,
-            'id': 2,
-            'jsonrpc': '2.0',
-            'method': 'trigger.get',
-            'params': {
-                'active': True,
-                'output': ['comments', 'error'],
-                'selectHosts': ['name'],
-                'triggerids': trigger_ids,
-                'withUnacknowledgedEvents': True,
-            },
-        }),
-        headers={
-            'Content-Type': 'application/json-rpc',
-        },
-    )
+    zabbix_response = get_zabbix_response(zabbix_url, zabbix_api_token, 'trigger.get', {
+        'active': True,
+        'output': ['comments', 'error'],
+        'selectHosts': ['name'],
+        'triggerids': trigger_ids,
+        'withUnacknowledgedEvents': True,
+    })
+    if zabbix_response['error']:
+        response['error'] = zabbix_response['error']
+        return response
 
-    raw_triggers = r.json()['result']
+    raw_triggers = zabbix_response['result']
 
     for raw_trigger in raw_triggers:
         triggers[raw_trigger['triggerid']] = raw_trigger
@@ -212,6 +187,39 @@ def get_zabbix_alerts(zabbix_url, zabbix_api_token):
                 alert['items'].append(host['name'])
 
         response['alerts'].append(alert)
+
+    return response
+
+
+def get_zabbix_response(zabbix_url, zabbix_api_token, method, params={}):
+    response = {
+        'error': None,
+        'result': None,
+    }
+
+    try:
+        r = requests.post(
+            '%s/api_jsonrpc.php' % zabbix_url,
+            data=json.dumps({
+                'auth': zabbix_api_token,
+                'id': 1,
+                'jsonrpc': '2.0',
+                'method': method,
+                'params': params,
+            }),
+            headers={
+                'Content-Type': 'application/json-rpc',
+            },
+        )
+        response_json = r.json()
+
+        if 'error' in response_json:
+            response['error'] = '%s: %s' % (response_json['error']['code'], response_json['error']['message'])
+    except:
+        response['error'] = 'Failed to retrive data from backend.'
+
+    if 'result' in response_json:
+        response['result'] = response_json['result']
 
     return response
 
