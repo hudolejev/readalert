@@ -215,11 +215,11 @@ def get_zabbix_response(zabbix_url, zabbix_api_token, method, params={}):
 
         if 'error' in response_json:
             response['error'] = '%s: %s' % (response_json['error']['code'], response_json['error']['message'])
+
+        if 'result' in response_json:
+            response['result'] = response_json['result']
     except:
         response['error'] = 'Failed to retrive data from backend.'
-
-    if 'result' in response_json:
-        response['result'] = response_json['result']
 
     return response
 
