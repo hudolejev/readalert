@@ -104,7 +104,8 @@ function printAlerts(alertData) {
         document.getElementById('alert-list').innerHTML += alertContainerHtml;
 
         if (alertNum >= maxAlerts) {
-            msgContainerHtml = `<tr class="alert"><td class="summary" colspan="5">Note: only the top ${maxAlerts} alerts are listed on this page. There are more...</td></tr>`;
+            alertCount = alertData['alerts'].length;
+            msgContainerHtml = `<tr class="alert"><td class="summary" colspan="5">Note: there are ${alertCount} active alerts; showing only the top ${maxAlerts} here.</td></tr>`;
             document.getElementById('alert-list').innerHTML += msgContainerHtml;
         }
     }
