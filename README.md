@@ -72,3 +72,9 @@ Author
 ------
 
 Juri Hudolejev <jhudolejev@gmail.com>
+
+
+License
+-------
+
+MIT
