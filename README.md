@@ -4,16 +4,17 @@ Read Alert
 Alert viewer with multiple backend (Grafana and Zabbix) support.
 
 Actively tested with:
+ - Grafana v7.4
  - Zabbix v5.0
- - Grafana v6.6
 
 Also known to work with:
+ - Grafana v6.6
  - Zabbix v4.0
 
 
 Requirements
 ------------
- - Linux (known to work on Ubuntu 16.04 and 18.04; should probably work on OS X too)
+ - Linux (known to work on Ubuntu 20.04, 18.04 and 16.04; should probably work on OS X too)
  - Python 3.5+ (also known to work on Python 3.7)
  - [Python requests library](https://pypi.org/project/requests)
 

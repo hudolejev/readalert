@@ -126,7 +126,7 @@ def get_zabbix_alerts(zabbix_url, zabbix_api_token):
     # Get problems
     # XXX Zabbix cannot return only unresolved problems: https://support.zabbix.com/browse/ZBXNEXT-5167
     # As a workaround we check the active triggers for all returned problems and skip the problems
-    # that do not have any active trigger attached. As a bonus we get problem description from th trigger.
+    # that do not have any active trigger attached. As a bonus we get problem description from the trigger.
     zabbix_response = get_zabbix_response(zabbix_url, zabbix_api_token, 'problem.get', {
         'acknowledged': False,
         'output': ['clock', 'name', 'objectid', 'severity'],
