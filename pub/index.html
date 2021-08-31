@@ -6,6 +6,7 @@
 
 <script type="text/javascript">
 var alertsFile = "alerts.json";
+var maxAlerts = 10;
 
 function getAgeInSeconds(time) {
     return Math.floor((new Date() - new Date(time * 1000)) / 1000);
@@ -58,7 +59,19 @@ function printAlerts(alertData) {
     }
 
     document.getElementById('alert-list').innerHTML = '';
+
+    alertNum = 0;
     for (const alert of alertData['alerts']) {
+        alertNum++;
+
+        if (alertingBackends.indexOf(alert['source']) < 0) {
+            alertingBackends.push(alert['source']);
+        }
+
+        if (alertNum > maxAlerts) {
+            continue;
+        }
+
         alertSeverityName = getAlertSeverityName(alert['severity']);
         alertSeverityHtml = `<td class="alert-severity"><abbr title="${alertSeverityName}">${alertSeverityName[0]}</abbr></td>`;
 
@@ -90,8 +103,10 @@ function printAlerts(alertData) {
         alertContainerHtml = `<tr class="alert alert-${alert['severity']}">${alertContainerHtml}</tr>`;
         document.getElementById('alert-list').innerHTML += alertContainerHtml;
 
-        if (alertingBackends.indexOf(alert['source']) < 0) {
-            alertingBackends.push(alert['source']);
+        if (alertNum >= maxAlerts) {
+            alertCount = alertData['alerts'].length;
+            msgContainerHtml = `<tr class="alert"><td class="summary" colspan="5">Note: there are ${alertCount} active alerts; showing only the top ${maxAlerts} here.</td></tr>`;
+            document.getElementById('alert-list').innerHTML += msgContainerHtml;
         }
     }
 
@@ -132,8 +147,20 @@ function printReportInfo(createdAt) {
     document.getElementById('report-time-info').innerHTML = `Reported <abbr title="${reportTimeStr}">${reportAgeStr}</abbr>`;
 }
 
+function setTheme() {
+    queryParams = location.search.substring(1).split('&');
+    if (queryParams.indexOf('tv') >= 0) {
+        document.body.style.setProperty('--bg-color-body', '#000');
+        document.body.style.setProperty('--display-alert-link', 'none');
+        document.body.style.setProperty('--text-color', '#fff');
+        document.body.style.setProperty('--text-size', '170%');
+        document.body.style.setProperty('--text-size-alert-severity', '204%');
+    }
+}
+
 window.onload = function() {
     document.getElementById('report-json-link').href = alertsFile;
+    setTheme();
     getAlerts(alertsFile);
     setInterval(getAlerts, 15000, alertsFile);
 }
@@ -141,43 +168,47 @@ window.onload = function() {
 
 <style type="text/css">
 :root {
-  --bg-color-green: #4c4;
-  --bg-color-yellow: #ed9;
-  --bg-color-orange: #e96;
-  --bg-color-red: #c55;
-  --fg-color-red: #e33;
+    --bg-color-body: none;
+    --bg-color-green: #4c4;
+    --bg-color-yellow: #ed9;
+    --bg-color-orange: #e96;
+    --bg-color-red: #c55;
+    --display-alert-link: table-cell;
+    --fg-color-red: #e33;
+    --text-color: #000;
+    --text-color-alert: #000;
+    --text-size: 100%;
+    --text-size-alert-severity: 120%;
 }
 
 body {
-    font-family: "Ubuntu Mono", "Droid Sans Mono", Courier, monospace;
+    background-color: var(--bg-color-body);
+    color: var(--text-color);
+    font-family: "Ubuntu Mono", Courier, monospace;
+    font-size: var(--text-size);
 }
 
 h1 {
-    /**border: 1px solid red;/**/
-    padding-left: 10px;
+    padding: 0.2em 10px;
 }
 
 div#alert-list-info {
-    /**border: 1px solid blue;/**/
     float: right;
-    padding: 10px 20px 10px 10px;
+    padding: 0 0.3em;
     position: relative;
-    top: -10px;
 }
 
 div#alert-list-info span#backend-info {
-    margin-right: 15px;
+    margin-right: 1em;
 }
 
 div#alert-list-info span#backend-info a {
-    border: 6px solid;
-    border-radius: 30px;
-    color: #000;
+    border-bottom: 6px solid;
+    color: var(--text-color);
     display: inline-block;
     font-weight: bold;
-    margin-right: 15px;
-    padding: 4px;
-    width: 20px;
+    margin: 0.4em;
+    padding: 0.6em;
     text-align: center;
     text-decoration: none;
 }
@@ -210,7 +241,9 @@ table#alert-list {
 }
 
 table#alert-list tr.alert td {
-    padding: 15px;
+    color: var(--text-color-alert);
+    font-size: var(--text-size);
+    padding: 1em;
 }
 
 table#alert-list tr.alert td.alert-age {
@@ -225,8 +258,12 @@ table#alert-list tr.alert td.alert-content p.alert-name {
     font-weight: bold;
 }
 
+table#alert-list tr.alert td.alert-link {
+    display: var(--display-alert-link);
+}
+
 table#alert-list tr.alert td.alert-severity {
-    font-size: 120%;
+    font-size: var(--text-size-alert-severity);
     font-weight: bold;
     padding-left: 30px;
 }
@@ -237,6 +274,10 @@ table#alert-list tr.alert td.alert-source {
 
 table#alert-list tr.alert td.alert-severity abbr {
     text-decoration: none;
+}
+
+table#alert-list tr.alert td.summary {
+    color: var(--text-color);
 }
 
 table#alert-list tr.alert-2 {
@@ -274,7 +315,7 @@ table#alert-list tr.alert td.time-warning {
     <table id="alert-list">
         <tr><td>Loading...</td></tr>
     </table>
-    <div id="footer">Read Alert v0.1.0<div>
+    <div id="footer">Read Alert v0.1.1 | <a href="https://github.com/hudolejev/readalert">GitHub</a><div>
 </div>
 </body>
 </html>
