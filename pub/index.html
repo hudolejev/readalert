@@ -97,7 +97,7 @@ function printAlerts(alertData) {
 
         alertSourceHtml = `<td class="alert-source">${backendShortNames[alert['source']]}</td>`;
 
-        alertLinkHtml = `<td class="alert-link"><a href="${alert['url']}" target="_blank">More&nbsp;&raquo;</a></td>`;
+        alertLinkHtml = `<td class="alert-link"><a href="${alert['url']}">More&nbsp;&raquo;</a></td>`;
 
         alertContainerHtml = alertSeverityHtml + alertContentHtml + alertAgeHtml + alertSourceHtml + alertLinkHtml;
         alertContainerHtml = `<tr class="alert alert-${alert['severity']}">${alertContainerHtml}</tr>`;
@@ -128,7 +128,7 @@ function printBackendInfo(knownBackends, alertingBackends) {
             backendDescription = `${backend['name']} backend is online and reporting some active alerts.`
         }
         backendShortName = getBackendShortName(backend['name']);
-        backendLinkHtml = `<a class="${backendCssClass}" href="${backend['url']}" target="_blank">${backendShortName}</a>`;
+        backendLinkHtml = `<a class="${backendCssClass}" href="${backend['url']}">${backendShortName}</a>`;
         backendInfoHtml += `<abbr title="${backendDescription}">${backendLinkHtml}</abbr>`;
     }
     document.getElementById('backend-info').innerHTML = backendInfoHtml;
@@ -148,13 +148,24 @@ function printReportInfo(createdAt) {
 }
 
 function setTheme() {
+    useDarkTheme = false;
+    useLargeFonts = false;
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        useDarkTheme = true;
+    }
+
     queryParams = location.search.substring(1).split('&');
     if (queryParams.indexOf('tv') >= 0) {
-        document.body.style.setProperty('--bg-color-body', '#000');
         document.body.style.setProperty('--display-alert-link', 'none');
-        document.body.style.setProperty('--text-color', '#fff');
         document.body.style.setProperty('--text-size', '170%');
         document.body.style.setProperty('--text-size-alert-severity', '204%');
+        useDarkTheme = true;
+    }
+
+    if (useDarkTheme) {
+        document.body.style.setProperty('--bg-color-body', '#000');
+        document.body.style.setProperty('--text-color', '#fff');
     }
 }
 
@@ -315,7 +326,7 @@ table#alert-list tr.alert td.time-warning {
     <table id="alert-list">
         <tr><td>Loading...</td></tr>
     </table>
-    <div id="footer">Read Alert v0.1.1 | <a href="https://github.com/hudolejev/readalert">GitHub</a><div>
+    <div id="footer">Read Alert v0.1.2 | <a href="https://github.com/hudolejev/readalert">GitHub</a><div>
 </div>
 </body>
 </html>
