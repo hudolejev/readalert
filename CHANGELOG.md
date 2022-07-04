@@ -8,6 +8,7 @@ Not released yet.
 
  - Add dark theme support -- follows the browser preferences
  - Open the links in the same window by default; use Ctrl+click to open in the new tab
+ - Update documentation
 
 
 v0.1.1
