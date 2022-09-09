@@ -4,7 +4,7 @@ Read Alert Changelog
 v0.1.2
 ------
 
-Not released yet.
+Released: 2022-09-09.
 
  - Add dark theme support -- follows the browser preferences
  - Open the links in the same window by default; use Ctrl+click to open in the new tab
