@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-<link rel="icon" href="data:image/svg+xml;utf8,
-    %3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E
-    %3Ctext x='128' y='128' font-size='200' text-anchor='middle' dominant-baseline='central'%3E📢%3C/text%3E
-    %3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2Ij48dGV4dCB4PSIxMjgiIHk9IjEyOCIgZm9udC1zaXplPSIyMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIj7wn5OiPC90ZXh0Pjwvc3ZnPgo=">
 <title>Read Alert</title>
 
-<script type="text/javascript">
+<script>
 var alertsFile = "alerts.json";
 var maxAlerts = 10;
 
@@ -181,9 +178,9 @@ window.onload = function() {
 }
 </script>
 
-<style type="text/css">
+<style>
 :root {
-    --bg-color-body: none;
+    --bg-color-body: #fff;
     --bg-color-green: #4c4;
     --bg-color-yellow: #ed9;
     --bg-color-orange: #e96;
@@ -330,7 +327,7 @@ table#alert-list tr.alert td.time-warning {
     <table id="alert-list">
         <tr><td>Loading...</td></tr>
     </table>
-    <div id="footer">Read Alert v0.1.3 | <a href="https://github.com/hudolejev/readalert">GitHub</a><div>
+    <div id="footer">Read Alert v0.1.3 | <a href="https://github.com/hudolejev/readalert">GitHub</a></div>
 </div>
 </body>
 </html>
