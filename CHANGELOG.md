@@ -1,6 +1,13 @@
 Read Alert Changelog
 ====================
 
+v0.1.3
+
+Not released yet.
+
+ - Add Rootly backend support
+
+
 v0.1.2
 ------
 
