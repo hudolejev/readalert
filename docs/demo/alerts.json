@@ -1,0 +1,38 @@
+{
+  "alerts": [
+    {
+      "created_at": 1776655433,
+      "id": 111,
+      "items": ["demo.example.org"],
+      "name": "CPU utlization critical",
+      "severity": 4,
+      "source": "https://zabbix.example.org",
+      "url": "https://zabbix.example.org/alerts/111"
+    },
+    {
+      "created_at": 1775555443,
+      "id": 222,
+      "items": ["demo.example.org", "fubar.example.org"],
+      "name": "Filesystem utlization warning",
+      "severity": 2,
+      "source": "https://zabbix.example.org",
+      "url": "https://zabbix.example.org/alerts/222"
+    },
+    {
+      "created_at": 1774455443,
+      "id": 333,
+      "items": ["old.example.org"],
+      "name": "Monitoring data missing",
+      "severity": 2,
+      "source": "https://zabbix.example.org",
+      "url": "https://zabbix.example.org/alerts/333"
+    }
+  ],
+  "backends": [
+    {
+      "name": "Demo Zabbix",
+      "url": "https://zabbix.example.org"
+    }
+  ],
+  "created_at": 1776655443
+}
