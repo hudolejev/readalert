@@ -4,7 +4,7 @@
       "created_at": 1776655433,
       "id": 111,
       "items": ["demo.example.org"],
-      "name": "CPU utlization critical",
+      "name": "CPU utilization critical",
       "severity": 4,
       "source": "https://zabbix.example.org",
       "url": "https://zabbix.example.org/alerts/111"
@@ -14,7 +14,7 @@
       "description": "/: more than 80% used",
       "id": 222,
       "items": ["demo.example.org", "fubar.example.org"],
-      "name": "Filesystem utlization warning",
+      "name": "Filesystem utilization warning",
       "severity": 2,
       "source": "https://zabbix.example.org",
       "url": "https://zabbix.example.org/alerts/222"
