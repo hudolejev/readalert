@@ -2,12 +2,14 @@
 #
 # TODO: add alert generation time (how long did it take)
 # TODO: better error handling for Grafana API calls
+# TODO: better error handling for Rootly API calls
 
 import json
 import requests
 import time
 
 from configparser import ConfigParser
+from dateutil import parser
 from os.path import expanduser
 
 
@@ -20,6 +22,8 @@ def get_alerts(backends):
     for backend in backends:
         if backend['type'] == 'grafana':
             response = get_grafana_alerts(backend['url'], backend['api_token'])
+        elif backend['type'] == 'rootly':
+            response = get_rootly_alerts(backend['url'], backend['api_token'])
         elif backend['type'] == 'zabbix':
             response = get_zabbix_alerts(backend['url'], backend['api_token'])
 
@@ -40,7 +44,7 @@ def get_alerts(backends):
 
 def get_config():
     config = {
-        'alerts_file_path': '/tmp/alerts.json',
+        'alerts_file': '/tmp/alerts.json',
         'backends': [],
     }
 
@@ -69,7 +73,7 @@ def get_config():
 
             backend[i] = config_parser[section][i]
 
-        if backend['type'] not in ['grafana', 'zabbix']:
+        if backend['type'] not in ['grafana', 'rootly', 'zabbix']:
             raise ValueError("Unsupported backend type '%s' in section '%s'" % (backend['type'], section))
 
         config['backends'].append(backend)
@@ -109,6 +113,48 @@ def get_grafana_alerts(grafana_url, grafana_api_token):
         if raw_alert['evalData'] and 'evalMatches' in raw_alert['evalData']:
             for item in raw_alert['evalData']['evalMatches']:
                 alert['items'].append('%s: %s' % (item['metric'], item['value']))
+
+        response['alerts'].append(alert)
+
+    return response
+
+
+def get_rootly_alerts(rootly_url, rootly_api_token):
+    response = {
+        'alerts': [],
+        'error': None,
+    }
+
+    r = requests.get(
+        '%s/v1/alerts' % rootly_url,
+        headers={
+            'Authorization': 'Bearer %s' % rootly_api_token,
+            'Content-Type': 'application/vnd.api+json',
+        },
+        params={
+            'filter[status]': 'triggered',
+        },
+    )
+    raw_alerts = sorted(r.json()['data'], key=lambda k: k['id'])
+
+    for raw_alert in raw_alerts:
+        # https://docs.rootly.com/alerts/alert-urgency#understanding-alert-urgency
+        severity = 3
+        if raw_alert['attributes']['alert_urgency']['name'] == 'High':
+            severity = 4
+        elif raw_alert['attributes']['alert_urgency']['name'] == 'Low':
+            severity = 2
+
+        alert = {
+            'created_at': int(parser.parse(raw_alert['attributes']['created_at']).timestamp()),
+            'description': raw_alert['attributes']['description'],
+            'id': raw_alert['attributes']['short_id'],
+            'items': [],
+            'name': raw_alert['attributes']['summary'],
+            'severity': severity,
+            'source': rootly_url,
+            'url': raw_alert['attributes']['url'],
+        }
 
         response['alerts'].append(alert)
 

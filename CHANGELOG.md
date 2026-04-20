@@ -5,7 +5,7 @@ v0.1.3
 
 Not released yet.
 
- - TODO
+ - Add Rootly backend support
 
 
 v0.1.2
