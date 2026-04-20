@@ -11,6 +11,7 @@
     },
     {
       "created_at": 1775555443,
+      "description": "/: more than 80% used",
       "id": 222,
       "items": ["demo.example.org", "fubar.example.org"],
       "name": "Filesystem utlization warning",
