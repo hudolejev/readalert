@@ -3,35 +3,53 @@
     {
       "created_at": 1776655433,
       "id": 111,
-      "items": ["demo.example.org"],
+      "items": ["tools.example.org"],
       "name": "CPU utilization critical",
       "severity": 4,
       "source": "https://zabbix.example.org",
       "url": "https://zabbix.example.org/alerts/111"
     },
     {
-      "created_at": 1775555443,
-      "description": "/: more than 80% used",
+      "created_at": 1776555443,
+      "description": "/data/mysql: more than 80% used",
       "id": 222,
-      "items": ["demo.example.org", "fubar.example.org"],
+      "items": ["db-2.example.org"],
       "name": "Filesystem utilization warning",
-      "severity": 2,
+      "severity": 3,
       "source": "https://zabbix.example.org",
       "url": "https://zabbix.example.org/alerts/222"
     },
     {
-      "created_at": 1774455443,
+      "created_at": 1776455443,
       "id": 333,
+      "items": ["web-1.example.org", "web-4.example.org"],
+      "name": "High HTTP 5xx response rate",
+      "severity": 3,
+      "source": "https://api.rootly.com",
+      "url": "https://zabbix.example.org/alerts/333"
+    },
+    {
+      "created_at": 1776355443,
+      "description": "Didn't hear from monitoring agent for over 2h",
+      "id": "ololo1",
       "items": ["old.example.org"],
       "name": "Monitoring data missing",
       "severity": 2,
       "source": "https://zabbix.example.org",
-      "url": "https://zabbix.example.org/alerts/333"
+      "url": "https://rootly.org/account/alerts/ololo1"
     }
   ],
   "backends": [
     {
-      "name": "Demo Zabbix",
+      "name": "Grafana",
+      "url": "https://grafana.example.org"
+    },
+    {
+      "name": "Rootly",
+      "url": "https://api.rootly.com"
+    },
+    {
+      "name": "Zabbix",
       "url": "https://zabbix.example.org"
     }
   ],
