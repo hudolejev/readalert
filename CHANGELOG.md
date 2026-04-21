@@ -6,6 +6,7 @@ v0.1.3
 Not released yet.
 
  - Add Rootly backend support
+ - Fix HTML linting issues
 
 
 v0.1.2

@@ -2,7 +2,6 @@
 #
 # TODO: add alert generation time (how long did it take)
 # TODO: better error handling for Grafana API calls
-# TODO: better error handling for Rootly API calls
 
 import json
 import requests
@@ -125,17 +124,29 @@ def get_rootly_alerts(rootly_url, rootly_api_token):
         'error': None,
     }
 
-    r = requests.get(
-        '%s/v1/alerts' % rootly_url,
-        headers={
-            'Authorization': 'Bearer %s' % rootly_api_token,
-            'Content-Type': 'application/vnd.api+json',
-        },
-        params={
-            'filter[status]': 'triggered',
-        },
-    )
-    raw_alerts = sorted(r.json()['data'], key=lambda k: k['id'])
+    try:
+        r = requests.get(
+            '%s/v1/alerts' % rootly_url,
+            headers={
+                'Authorization': 'Bearer %s' % rootly_api_token,
+                'Content-Type': 'application/vnd.api+json',
+            },
+            params={
+                'filter[status]': 'triggered',
+            },
+        )
+
+        response_json = r.json()
+
+        if 'errors' in response_json:
+            response['error'] = '%s: %s' % (response_json['errors'][0]['status'], response_json['errors'][0]['title'])
+    except Exception:
+        response['error'] = 'Failed to retrive data from backend.'
+
+    if response['error']:
+        return response
+
+    raw_alerts = sorted(response_json['data'], key=lambda k: k['id'])
 
     for raw_alert in raw_alerts:
         # https://docs.rootly.com/alerts/alert-urgency#understanding-alert-urgency
@@ -264,7 +275,7 @@ def get_zabbix_response(zabbix_url, zabbix_api_token, method, params={}):
 
         if 'result' in response_json:
             response['result'] = response_json['result']
-    except:
+    except Exception:
         response['error'] = 'Failed to retrive data from backend.'
 
     return response
